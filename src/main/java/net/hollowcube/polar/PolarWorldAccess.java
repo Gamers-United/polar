@@ -4,9 +4,9 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.network.NetworkBuffer;
-import net.minestom.server.utils.NamespaceID;
-import net.minestom.server.world.biomes.Biome;
-import net.minestom.server.world.biomes.BiomeManager;
+import net.minestom.server.registry.DynamicRegistry;
+import net.minestom.server.world.biome.Biome;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,9 +17,9 @@ import org.jetbrains.annotations.Nullable;
  * Usage if world access is completely optional, dependent features will not add
  * overhead to the format if unused.
  */
-@SuppressWarnings("UnstableApiUsage")
 public interface PolarWorldAccess {
-    PolarWorldAccess DEFAULT = new PolarWorldAccess() {};
+    PolarWorldAccess DEFAULT = new PolarWorldAccess() {
+    };
 
     /**
      * Called when an instance is created from this chunk loader.
@@ -29,7 +29,8 @@ public interface PolarWorldAccess {
      * @param instance The Minestom instance being created
      * @param userData The saved user data, or null if none is present.
      */
-    default void loadWorldData(@NotNull Instance instance, @Nullable NetworkBuffer userData) {}
+    default void loadWorldData(@NotNull Instance instance, @Nullable NetworkBuffer userData) {
+    }
 
     /**
      * Called when an instance is being saved.
@@ -39,54 +40,62 @@ public interface PolarWorldAccess {
      * @param instance The Minestom instance being saved
      * @param userData A buffer to write user data to save
      */
-    default void saveWorldData(@NotNull Instance instance, @NotNull NetworkBuffer userData) {}
+    default void saveWorldData(@NotNull Instance instance, @NotNull NetworkBuffer userData) {
+    }
 
     /**
      * Called when a chunk is created, just before it is added to the world.
      * <br/><br/>
      * Can be used to initialize the chunk based on saved user data in the world.
      *
-     * @param chunk The Minestom chunk being created
+     * @param chunk    The Minestom chunk being created
      * @param userData The saved user data, or null if none is present
      */
-    default void loadChunkData(@NotNull Chunk chunk, @Nullable NetworkBuffer userData) {}
+    default void loadChunkData(@NotNull Chunk chunk, @Nullable NetworkBuffer userData) {
+    }
 
     /**
      * Called when a chunk is being saved.
      * <br/><br/>
      * Can be used to save user data in the chunk by writing it to the buffer.
      *
-     * @param chunk The Minestom chunk being saved
+     * @param chunk    The Minestom chunk being saved
      * @param userData A buffer to write user data to save
      */
-    default void saveChunkData(@NotNull Chunk chunk, @NotNull NetworkBuffer userData) {}
+    default void saveChunkData(@NotNull Chunk chunk, @NotNull NetworkBuffer userData) {
+    }
+
+    @ApiStatus.Experimental
+    default void loadHeightmaps(@NotNull Chunk chunk, int[][] heightmaps) {
+    }
+
+    @ApiStatus.Experimental
+    default void saveHeightmaps(@NotNull Chunk chunk, int[][] heightmaps) {
+    }
 
     /**
-     * Called when a chunk is being loaded by a {@link PolarLoader} to convert biome ids back to instances.
+     * Called when a chunk is being loaded by a {@link PolarLoader} to convert biome namespaces back to id.
      * <br/><br/>
      * It is valid to change the behavior as long as a biome is returned in all cases (i.e. have a default).
      * <br/><br/>
      * Biomes are cached by the loader per loader instance, so there will only be a single call per loader, even over many chunks.
      *
      * @param name The namespace ID of the biome, eg minecraft:plains
-     * @return The biome instance
+     * @return The biome id
      */
-    default @NotNull Biome getBiome(@NotNull String name) {
-        var biome = MinecraftServer.getBiomeManager().getByName(NamespaceID.from(name));
-        if (biome == null) {
-            PolarLoader.logger.error("Failed to find biome: {}", name);
-            biome = Biome.PLAINS;
-        }
-        return biome;
+    default int getBiomeId(@NotNull String name) {
+        var biomeRegistry = MinecraftServer.getBiomeRegistry();
+        return biomeRegistry.getId(DynamicRegistry.Key.of(name));
     }
 
     default @NotNull String getBiomeName(int id) {
-        var biome = MinecraftServer.getBiomeManager().getById(id);
+        var biomeRegistry = MinecraftServer.getBiomeRegistry();
+        var biome = biomeRegistry.getKey(id);
         if (biome == null) {
             PolarLoader.logger.error("Failed to find biome: {}", id);
-            biome = Biome.PLAINS;
+            return Biome.PLAINS.name();
         }
-        return biome.name().asString();
+        return biome.name();
     }
 
 }

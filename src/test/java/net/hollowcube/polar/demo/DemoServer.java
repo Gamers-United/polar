@@ -12,7 +12,6 @@ import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerChatEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.instance.LightingChunk;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,10 +31,10 @@ public class DemoServer {
         var instance = MinecraftServer.getInstanceManager().createInstanceContainer();
 
         // Unlit
-//        instance.setChunkSupplier(LightingChunk::new);
-//        instance.setChunkLoader(new PolarLoader(Path.of("./src/test/resources/hcspawn.polar")));
+        instance.setChunkLoader(new PolarLoader(Path.of("./src/test/resources/bench_1205.polar")));
         // Lit
-        instance.setChunkLoader(new PolarLoader(Path.of("./hcspawn.polar")));
+//        instance.setChunkSupplier(LightingChunk::new);
+//        instance.setChunkLoader(new PolarLoader(Path.of("./hcspawn.polar")));
 
 
         MinecraftServer.getGlobalEventHandler()
@@ -47,7 +46,7 @@ public class DemoServer {
                     event.getPlayer().setGameMode(GameMode.CREATIVE);
                 })
                 .addListener(PlayerChatEvent.class, event -> {
-                    if (!event.getMessage().equals("save")) return;
+                    if (!event.getRawMessage().equals("save")) return;
 
                     var start = System.currentTimeMillis();
                     instance.saveChunksToStorage().join();

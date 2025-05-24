@@ -18,6 +18,7 @@ The polar format resembles the anvil format in many ways, though it is binary, n
 |------------------|--------------|------------------------------------------|
 | Min Section      | byte         | For example, -4 in a vanilla world       |
 | Max Section      | byte         | For example, 19 in a vanilla world       |
+| User data        | array[byte]  | Arbitrary user data segment              |
 | Number of Chunks | varint       | Number of entries in the following array |
 | Chunks           | array[chunk] | Chunk data                               |
 
@@ -35,7 +36,7 @@ Entities or some other extra data field needs to be added to chunks in the futur
 | Heightmap Mask           | int                 | A mask indicating which heightmaps are present. See `AnvilChunk` for flag constants. |
 | Heightmaps               | array[bytes]        | One heightmap for each bit present in Heightmap Mask                                 |
 | Length of user data      | varint              | Number of entries in the following array                                             |
-| User data                | array[byte]         |                                                                                      |
+| User data                | array[byte]         | Arbitrary user data segment                                                          |
 
 ### Sections
 
@@ -50,10 +51,10 @@ Entities or some other extra data field needs to be added to chunks in the futur
 | Biome Palette             | array[string] |                                                                   |
 | Biome Palette Data Length | varint        | Only present if `Biome Palette Size > 1`                          |
 | Biome Palette Data        | array[long]   | See the anvil format for more information about this type         |
-| Has Block Light Data      | bool          | If unset, block light is ommitted                                 |
-| Block Light               | bytes         | A 2048 byte long nibble array                                     |
-| Has Sky Light Data        | bool          | If unset, sky light is ommitted                                   |
-| Sky Light                 | bytes         | A 2048 byte long nibble array                                     |
+| Block Light Data Content  | byte          | 0 = no lighting, 1 = all zero, 2 = all max, 3 = present after     |
+| Block Light               | bytes         | A 2048 byte long nibble array, only present if above = 3          |
+| Sky Light Data Content    | byte          | 0 = no lighting, 1 = all zero, 2 = all max, 3 = present after     |
+| Sky Light                 | bytes         | A 2048 byte long nibble array, only present if above = 3          |
 
 ### Block Entity
 
